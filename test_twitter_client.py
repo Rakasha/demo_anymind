@@ -1,5 +1,8 @@
 import pytest
 
+import requests
+from unittest.mock import Mock
+
 import twitter_client
 
 
@@ -32,3 +35,17 @@ def test_set_auth_token(fixture_client):
     assert client.auth_token == my_token
 
 
+def test_get_tweets_by_query(fixture_client):
+
+    def mockrequest(*args, **kwargs):
+
+        r = requests.Response()
+        tweets = [{'text': 'dummy tweet 1'}, {'text': 'dummy tweet 2'}]
+        r.json = lambda: {'statuses': tweets}
+        r.status_code = 200
+        return r
+
+    client = fixture_client
+    client.session.get = mockrequest
+    tweets = client.get_tweets_by_query(query_params=['#dummy'], limit=3)
+    assert isinstance(tweets, list)

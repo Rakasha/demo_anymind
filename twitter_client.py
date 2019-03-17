@@ -41,3 +41,23 @@ class Client(object):
                               data={'grant_type': 'client_credentials'})
         r.raise_for_status()
         return r.json()['access_token']
+
+
+    def get_tweets_by_query(self, query_params, limit=30):
+        """ Fetch tweets by given list of query conditions.
+
+        For building query operators see:
+         https://developer.twitter.com/en/docs/tweets/rules-and-filtering/overview/standard-operators.html
+
+        :param query_params: list of string
+        :param limit: number of tweets to fetch
+        :return: list of dict, each represents a tweet
+        """
+
+        url = self.base_url + '/search/tweets.json'
+        q_string = ' '.join(query_params)
+        r = self.session.get(url, params={'q': q_string})
+
+        r.raise_for_status()
+        tweets = r.json()['statuses']
+        return tweets
