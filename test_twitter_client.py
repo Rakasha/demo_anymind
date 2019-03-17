@@ -49,3 +49,20 @@ def test_get_tweets_by_query(fixture_client):
     client.session.get = mockrequest
     tweets = client.get_tweets_by_query(query_params=['#dummy'], limit=3)
     assert isinstance(tweets, list)
+
+
+def test_get_tweets_by_hashtag(fixture_client):
+
+    client = fixture_client
+    correct_values = [{'text': 'dummy tweet 1'}, {'text': 'dummy tweet 2'}]
+    correct_limit = 123
+    hash_tag = 'dummy'
+
+    mocked_get_tweets_by_query = Mock(return_value=correct_values)
+
+    client.get_tweets_by_query = mocked_get_tweets_by_query
+    tweets = client.get_tweets_by_hashtag('dummy', limit=correct_limit)
+
+    assert tweets == correct_values
+    mocked_get_tweets_by_query.assert_called_with(query_params=['#'+hash_tag],
+                                                  limit=correct_limit)
