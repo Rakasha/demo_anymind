@@ -72,3 +72,17 @@ class Client(object):
         r.raise_for_status()
         tweets = r.json()['statuses']
         return tweets
+
+    def get_tweets_by_user(self, screen_name, limit=30):
+        """ Fetch a user's tweets
+            example url: https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=raymondh&count=2
+        :param screen_name:
+        :param limit: number of tweets to fetch
+        :return: list of dict, each represents a tweet
+        """
+
+        params = {'screen_name': screen_name}
+        url = self.base_url + '/statuses/user_timeline.json'
+
+        r = self.session.get(url, params=params)
+        return r.json()

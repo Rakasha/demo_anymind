@@ -66,3 +66,18 @@ def test_get_tweets_by_hashtag(fixture_client):
     assert tweets == correct_values
     mocked_get_tweets_by_query.assert_called_with(query_params=['#'+hash_tag],
                                                   limit=correct_limit)
+
+
+def test_get_tweets_by_user(fixture_client):
+    returned_tweets = [{'text': 'dummy tweet 1'}, {'text': 'dummy tweet 2'}]
+
+    def mocked_session_get(*args, **kwargs):
+
+        r = requests.Response()
+        r.json = lambda: returned_tweets
+        r.status_code = 200
+        return r
+
+    client = fixture_client
+    client.session.get = mocked_session_get
+    assert client.get_tweets_by_user('my_screen_name') == returned_tweets
