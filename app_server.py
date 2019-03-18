@@ -1,17 +1,11 @@
-from flask import Flask, jsonify, request, abort
+from flask import Flask, jsonify, request
 
-import requests
 import twitter_client
 import settings
 
 app = Flask(__name__)
 
-
-@app.errorhandler(requests.exceptions.HTTPError)
-def debug_http_error(e):
-    """ For debug purpose """
-    response = e.response
-    return response.text, response.status_code
+DEFAULT_REQUEST_LIMIT = 30
 
 
 @app.route('/')
@@ -21,12 +15,23 @@ def root_view():
 
 @app.route('/hashtags/<string:hashtag>')
 def get_by_hash_tag(hashtag):
-    limit = request.args.get('limit')
+    limit = request.args.get('limit', DEFAULT_REQUEST_LIMIT)
     client = twitter_client.Client(settings.API_KEY, settings.API_SECRET_KEY)
     client.auth()
 
     tweets = client.get_tweets_by_hashtag(hashtag, limit=limit)
     if not tweets:
-        abort(404)
+        return jsonify(message="No tweet found"), 404
     return jsonify(tweets)
 
+
+@app.route('/users/<string:screen_name>')
+def get_by_user(screen_name):
+    limit = request.args.get('limit', DEFAULT_REQUEST_LIMIT)
+    client = twitter_client.Client(settings.API_KEY, settings.API_SECRET_KEY)
+    client.auth()
+
+    tweets = client.get_tweets_by_user(screen_name, limit=limit)
+    if not tweets:
+        return jsonify(message="No tweet found"), 404
+    return jsonify(tweets)

@@ -71,7 +71,7 @@ class Client(object):
         tweets = r.json()['statuses']
         return tweets
 
-    def get_tweets_by_user(self, screen_name, limit=30):
+    def get_tweets_by_user(self, screen_name, limit=MAX_COUNT):
         """ Fetch a user's tweets
             example url: https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=raymondh&count=2
         :param screen_name:
@@ -79,8 +79,9 @@ class Client(object):
         :return: list of dict, each represents a tweet
         """
 
-        params = {'screen_name': screen_name}
+        params = {'screen_name': screen_name, 'count': limit}
         url = self.base_url + '/statuses/user_timeline.json'
 
         r = self.session.get(url, params=params)
-        return r.json()
+        tweets = r.json()
+        return tweets
