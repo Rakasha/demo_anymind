@@ -4,7 +4,7 @@ import functools
 
 API_HOST = 'https://api.twitter.com'
 DEFAULT_API_VERSION = '1.1'
-
+MAX_COUNT = 100
 
 class Client(object):
 
@@ -42,19 +42,17 @@ class Client(object):
         r.raise_for_status()
         return r.json()['access_token']
 
-    def get_tweets_by_hashtag(self, hashtag, limit=30):
+    def get_tweets_by_hashtag(self, hashtag, limit=MAX_COUNT):
         """ Fetch tweets by a hashtag
 
         :param hashtag: string WITHOUT the '#'-symbol
         :param limit: number of the tweets to fetch
         :return: list of dict, each represents a tweet
         """
-
-        url = self.base_url + '/search/tweets.json'
         query_params = ['#{}'.format(hashtag)]
         return self.get_tweets_by_query(query_params=query_params, limit=limit)
 
-    def get_tweets_by_query(self, query_params, limit=30):
+    def get_tweets_by_query(self, query_params, limit=MAX_COUNT):
         """ Fetch tweets by given list of query conditions.
 
         For building query operators see:
@@ -67,7 +65,7 @@ class Client(object):
 
         url = self.base_url + '/search/tweets.json'
         q_string = ' '.join(query_params)
-        r = self.session.get(url, params={'q': q_string})
+        r = self.session.get(url, params={'q': q_string, 'count': limit})
 
         r.raise_for_status()
         tweets = r.json()['statuses']
