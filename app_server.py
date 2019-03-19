@@ -1,3 +1,4 @@
+import requests
 from flask import Flask, jsonify, request, g
 
 import twitter_client
@@ -23,7 +24,7 @@ def root_view():
 
 @app.route('/hashtags/<string:hashtag>')
 def get_by_hash_tag(hashtag):
-    limit = request.args.get('limit', DEFAULT_REQUEST_LIMIT)
+    limit = int(request.args.get('limit', DEFAULT_REQUEST_LIMIT))
 
     client = get_client()
     tweets = client.get_tweets_by_hashtag(hashtag, limit=limit)
@@ -34,7 +35,7 @@ def get_by_hash_tag(hashtag):
 
 @app.route('/users/<string:screen_name>')
 def get_by_user(screen_name):
-    limit = request.args.get('limit', DEFAULT_REQUEST_LIMIT)
+    limit = int(request.args.get('limit', DEFAULT_REQUEST_LIMIT))
 
     client = get_client()
     tweets = client.get_tweets_by_user(screen_name, limit=limit)
