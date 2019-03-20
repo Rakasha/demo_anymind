@@ -22,7 +22,7 @@ def root_view():
     return 'hello'
 
 
-@app.route('/hashtags/<string:hashtag>')
+@app.route('/hashtags/<string:hashtag>', methods=['GET'])
 def get_by_hash_tag(hashtag):
     limit = int(request.args.get('limit', DEFAULT_REQUEST_LIMIT))
 
@@ -35,7 +35,7 @@ def get_by_hash_tag(hashtag):
     return jsonify(formatted_tweets)
 
 
-@app.route('/users/<string:screen_name>')
+@app.route('/users/<string:screen_name>', methods=['GET'])
 def get_by_user(screen_name):
     limit = int(request.args.get('limit', DEFAULT_REQUEST_LIMIT))
 
