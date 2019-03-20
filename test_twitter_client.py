@@ -35,20 +35,53 @@ def test_set_auth_token(fixture_client):
     assert client.auth_token == my_token
 
 
-def test_get_tweets_by_query(fixture_client):
+def test_get_tweets_by_query_exceed_max_limit(fixture_client, monkeypatch):
+    """ Test the scenario when the desired amount of tweets
+        exceed the max_limit per Twitter-API request
 
-    def mockrequest(*args, **kwargs):
+        reference:
+         https://developer.twitter.com/en/docs/tweets/rules-and-filtering/overview/standard-operators.html
+    """
+    monkeypatch.setattr(twitter_client, 'MAX_COUNT', 2)
+
+    request_called = 0
+
+    def mock_request(*args, **kwargs):
+
+        nonlocal request_called
+        request_called += 1
+
+        all_tweets = [
+            {'id': 1, 'text': 'text 1'},
+            {'id': 2, 'text': 'text 2'},
+            {'id': 3, 'text': 'text 3'},
+            {'id': 4, 'text': 'text 4'},
+            {'id': 5, 'text': 'text 5'},
+            {'id': 6, 'text': 'text 5'},
+            {'id': 7, 'text': 'text 5'}
+        ]
+
+        params = kwargs['params']
+        max_id = params.get('max_id')
+        count = params['count']
+        if not max_id:
+            return_tweets = all_tweets[-count:]
+        else:
+            return_tweets = all_tweets[max_id-count:max_id]
 
         r = requests.Response()
-        tweets = [{'text': 'dummy tweet 1'}, {'text': 'dummy tweet 2'}]
-        r.json = lambda: {'statuses': tweets}
+        r.json = lambda: {'statuses': return_tweets}
         r.status_code = 200
         return r
 
     client = fixture_client
-    client.session.get = mockrequest
-    tweets = client.get_tweets_by_query(query_params=['#dummy'], limit=3)
+    client.session.get = mock_request
+
+    tweets = client.get_tweets_by_query(query_params=['#dummy'], limit=5)
+
     assert isinstance(tweets, list)
+    assert len(tweets) == 5
+    assert request_called == 3
 
 
 def test_get_tweets_by_hashtag(fixture_client):

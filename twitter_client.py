@@ -1,10 +1,10 @@
 import requests
-import functools
 
 
 API_HOST = 'https://api.twitter.com'
 DEFAULT_API_VERSION = '1.1'
 MAX_COUNT = 100
+
 
 class Client(object):
 
@@ -62,14 +62,49 @@ class Client(object):
         :param limit: number of tweets to fetch
         :return: list of dict, each represents a tweet
         """
-
         url = self.base_url + '/search/tweets.json'
-        q_string = ' '.join(query_params)
-        r = self.session.get(url, params={'q': q_string, 'count': limit})
 
-        r.raise_for_status()
-        tweets = r.json()['statuses']
+        q_string = ' '.join(query_params)
+
+        tweets = self._get_all_resources(url, {'q': q_string}, limit)
         return tweets
+
+    def _get_all_resources(self, resource_url, params, num_to_fetch):
+        """
+            Fire multiple requests to fetch the desired amounts of tweets.
+            Since each request to Twitter-API has a MAX_LIMIT of 100 records, for subsequent requests
+            we have to pass-in the max_id to control the 'starting point' of the query.
+
+            For more detail see:
+            https://developer.twitter.com/en/docs/tweets/timelines/guides/working-with-timelines
+
+        :param resource_url: resource url
+        :param params: query params to build the url's query string
+        :param num_to_fetch: The amount of tweet to fetch
+        :return: list of dict. Each dict represents a tweet.
+        """
+
+        if num_to_fetch == 0:
+            return []
+        elif num_to_fetch < MAX_COUNT:
+            params['count'] = num_to_fetch
+        else:
+            params['count'] = MAX_COUNT
+
+        r = self.session.get(resource_url, params=params)
+        r.raise_for_status()
+        result = r.json()
+
+        fetched_tweets = result['statuses']
+        num_fetched = len(fetched_tweets)
+
+        if num_fetched == 0:
+            return []
+        else:
+            min_id = fetched_tweets[-1]['id']
+            params['max_id'] = min_id - 1
+            fetched_tweets.extend(self._get_all_resources(resource_url, params, num_to_fetch - num_fetched))
+            return fetched_tweets
 
     def get_tweets_by_user(self, screen_name, limit=MAX_COUNT):
         """ Fetch a user's tweets
