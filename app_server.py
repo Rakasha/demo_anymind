@@ -30,7 +30,9 @@ def get_by_hash_tag(hashtag):
     tweets = client.get_tweets_by_hashtag(hashtag, limit=limit)
     if not tweets:
         return jsonify(message="No tweet found"), 404
-    return jsonify(tweets)
+
+    formatted_tweets = list(map(twitter_client.format_tweet, tweets))
+    return jsonify(formatted_tweets)
 
 
 @app.route('/users/<string:screen_name>')
@@ -41,4 +43,6 @@ def get_by_user(screen_name):
     tweets = client.get_tweets_by_user(screen_name, limit=limit)
     if not tweets:
         return jsonify(message="No tweet found"), 404
-    return jsonify(tweets)
+
+    formatted_tweets = list(map(twitter_client.format_tweet, tweets))
+    return jsonify(formatted_tweets)

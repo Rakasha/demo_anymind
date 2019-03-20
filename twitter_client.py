@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import requests
 
 
@@ -120,3 +122,51 @@ class Client(object):
         r = self.session.get(url, params=params)
         tweets = r.json()
         return tweets
+
+
+def format_tweet(data):
+    """ Format the raw tweet data to the following format:
+    {"account": {"fullname": "Raymond Hettinger",
+              "href": "/raymondh",
+              "id": 14159138},
+              "date": "12:57 PM - 7 Mar 2018",
+              "hashtags": ["#python"],
+              "likes": 169,
+              "replies": 13,
+              "retweets": 27,
+              "text": "Historically, bash filename pattern matching was known
+                       as \"globbing\".  Hence, the #python module
+                       called \"glob\".\n\n
+                       >>> print(glob.glob('*.py')\n\n
+                       If the function were being added today, it would probably
+                       be called os.path.expand_wildcards('*.py') which would be
+                       less arcane."}
+    :param data: original tweet fetched from Twitter-API
+    :return: formatted data
+    """
+
+    result = {}
+
+    result['account'] = {
+        'fullname': data['user']['name'],
+        'href': '/'+data['user']['screen_name'],
+        'id': data['user']['id']
+    }
+    # TODO: calculate the retweets count.
+    result['date'] = format_tweet_date(data['created_at'])
+    result['hashtags'] = ['#' + x['text']
+                          for x in data['entities']['hashtags']]
+    result['likes'] = data['favorite_count']
+    result['retweets'] = data['retweet_count']
+    result['text'] = data['text']
+
+    return result
+
+
+def format_tweet_date(date_string):
+    """
+    >>>format_tweet_date('Tue Mar 05 23:50:44 +0000 2019')
+    >>>'11:50 PM - 5 Mar 2019'
+    """
+    dt = datetime.strptime(date_string, '%a %b %d %X %z %Y')
+    return dt.strftime('%I:%M %p - %-d %b %Y')
