@@ -145,3 +145,10 @@ Returns:
       ...
 ```
 
+# Testing
+Simply run `pytest` under the project root:
+
+```bash
+$ pytest .
+```
+
